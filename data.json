@@ -1,0 +1,22 @@
+[
+    {
+        "TaskName": "Implement Design",
+        "Assignee": "Sanji",
+        "Duration": "03/06/2023"
+    },
+    {
+        "TaskName": "Create Prototype",
+        "Assignee": "Zoro",
+        "Duration": "04/07/2023"
+    },
+    {
+        "TaskName": "Design Database",
+        "Assignee": "Luffy",
+        "Duration": "05/12/2023"
+    },
+    {
+        "TaskName": "Create BPMN",
+        "Assignee": "Joni",
+        "Duration": "02/09/2023"
+    }
+]

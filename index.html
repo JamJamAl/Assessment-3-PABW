@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+    />
+    <style>
+      .add-input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .error-message {
+        color: red;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="taskTable" class="display" style="width: 100%">
+      <thead>
+        <tr>
+          <th>Task Name</th>
+          <th>Assignee</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <button id="addButton">Add</button>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $.ajax({
+          url: "data.json",
+          dataType: "json",
+          success: function (data) {
+            $.each(data, function (index, item) {
+              var row = $(
+                "<tr>" +
+                  "<td>" +
+                  item.TaskName +
+                  "</td>" +
+                  "<td>" +
+                  item.Assignee +
+                  "</td>" +
+                  "<td>" +
+                  item.Duration +
+                  "</td>" +
+                  '<td><button class="editButton" data-taskname="' +
+                  item.TaskName +
+                  '" data-assignee="' +
+                  item.Assignee +
+                  '" data-duration="' +
+                  item.Duration +
+                  '">Edit</button></td>' +
+                  "</tr>"
+              );
+              $("#taskTable tbody").append(row);
+            });
+            $("#taskTable").DataTable();
+          },
+        });
+
+        $("#taskTable").on("click", ".editButton", function () {
+          var taskName = $(this).data("taskname");
+          var assignee = $(this).data("assignee");
+          var duration = $(this).data("duration");
+
+          var row = $(this).closest("tr");
+          var taskNameCell = row.find("td:eq(0)");
+          var assigneeCell = row.find("td:eq(1)");
+          var durationCell = row.find("td:eq(2)");
+
+          taskNameCell.html(
+            '<input type="text" class="edit-input" value="' + taskName + '">'
+          );
+          assigneeCell.html(
+            '<input type="text" class="edit-input" value="' + assignee + '">'
+          );
+          durationCell.html(
+            '<input type="text" class="edit-input" value="' + duration + '">'
+          );
+
+          assigneeCell.find(".edit-input").autocomplete({
+            source: ["John Doe", "Jane Smith", "Bob Johnson"],
+          });
+
+          durationCell.find(".edit-input").datepicker();
+
+          $(this).replaceWith('<button class="saveButton">Save</button>');
+        });
+
+        $("#taskTable").on("click", ".saveButton", function () {
+          var row = $(this).closest("tr");
+          var taskNameInput = row.find("input:eq(0)");
+          var assigneeInput = row.find("input:eq(1)");
+          var durationInput = row.find("input:eq(2)");
+
+          var taskName = taskNameInput.val();
+          var assignee = assigneeInput.val();
+          var duration = durationInput.val();
+
+          var isValid = true;
+          var errorMessage = "";
+
+          if (taskName.trim() === "") {
+            errorMessage += "Task Name is required.<br>";
+            isValid = false;
+          }
+
+          if (assignee.trim() === "") {
+            errorMessage += "Assignee is required.<br>";
+            isValid = false;
+          }
+
+          if (duration.trim() === "") {
+            errorMessage += "Duration is required.<br>";
+            isValid = false;
+          }
+
+          if (!isValid) {
+            var errorRow = $(
+              '<tr class="error-row">' +
+                '<td colspan="4"><div class="error-message">' +
+                errorMessage +
+                "</div></td>" +
+                "</tr>"
+            );
+
+            if (row.hasClass("error-row")) {
+              row.replaceWith(errorRow);
+            } else {
+              row.after(errorRow);
+            }
+
+            return;
+          }
+
+          row.siblings(".error-row").remove();
+
+          $(this).replaceWith('<button class="editButton">Edit</button>');
+
+          row.find("td:eq(0)").text(taskName);
+          row.find("td:eq(1)").text(assignee);
+          row.find("td:eq(2)").text(duration);
+        });
+
+        $("#addButton").on("click", function () {
+          var newRow = $(
+            "<tr>" +
+              '<td><input type="text" class="add-input task-input"></td>' +
+              '<td><input type="text" class="add-input assignee-input"></td>' +
+              '<td><input type="text" class="add-input duration-input"></td>' +
+              '<td><button class="saveButton">Save</button></td>' +
+              "</tr>"
+          );
+
+          $("#taskTable tbody").append(newRow);
+
+          newRow.find(".duration-input").datepicker();
+
+          newRow.find(".saveButton").on("click", function () {
+            var taskName = newRow.find(".task-input").val();
+            var assignee = newRow.find(".assignee-input").val();
+            var duration = newRow.find(".duration-input").val();
+
+            var isValid = true;
+            var errorMessage = "";
+
+            if (taskName.trim() === "") {
+              errorMessage += "Task Name is required.<br>";
+              isValid = false;
+            }
+
+            if (assignee.trim() === "") {
+              errorMessage += "Assignee is required.<br>";
+              isValid = false;
+            }
+
+            if (duration.trim() === "") {
+              errorMessage += "Duration is required.<br>";
+              isValid = false;
+            }
+
+            if (!isValid) {
+              var errorRow = $(
+                '<tr class="error-row">' +
+                  '<td colspan="4"><div class="error-message">' +
+                  errorMessage +
+                  "</div></td>" +
+                  "</tr>"
+              );
+
+              newRow.after(errorRow);
+              return;
+            }
+
+            newRow.siblings(".error-row").remove();
+
+            newRow.find("td:eq(0)").text(taskName);
+            newRow.find("td:eq(1)").text(assignee);
+            newRow.find("td:eq(2)").text(duration);
+            newRow
+              .find(".saveButton")
+              .replaceWith('<button class="editButton">Edit</button>');
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
